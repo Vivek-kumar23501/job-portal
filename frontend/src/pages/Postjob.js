@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import API from "../services/api"; // Your configured axios instance
+import API from "../services/api"; // Axios instance
 import { useNavigate } from "react-router-dom";
 
 const PostJob = () => {
   const [job, setJob] = useState({
     title: "",
+    company: "",
     description: "",
     location: "",
     salary: "",
@@ -26,8 +27,7 @@ const PostJob = () => {
     setMessage("");
     setError("");
 
-    // Basic validation
-    if (!job.title || !job.description || !job.location) {
+    if (!job.title || !job.company || !job.description || !job.location) {
       setError("Please fill in all required fields.");
       return;
     }
@@ -39,7 +39,7 @@ const PostJob = () => {
         return;
       }
 
-      const res = await API.post("/employer/create-job", job, {
+      const res = await API.post("/jobs/create", job, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -48,14 +48,16 @@ const PostJob = () => {
       setMessage(res.data.msg || "Job posted successfully!");
       setJob({
         title: "",
+        company: "",
         description: "",
         location: "",
         salary: "",
       });
 
-      // Optionally redirect employer to manage jobs or dashboard
-      // navigate("/employer/manage-jobs");
+      // Optional: redirect after posting
+      // navigate("/employer/dashboard");
     } catch (err) {
+      console.error("Job post error:", err);
       setError(
         err.response?.data?.msg || "Failed to post job. Please try again."
       );
@@ -85,6 +87,20 @@ const PostJob = () => {
         </div>
 
         <div style={{ marginBottom: 15 }}>
+          <label htmlFor="company">Company Name *</label>
+          <input
+            type="text"
+            id="company"
+            name="company"
+            value={job.company}
+            onChange={handleChange}
+            placeholder="e.g. Infosys"
+            required
+            style={{ width: "100%", padding: 8, marginTop: 5 }}
+          />
+        </div>
+
+        <div style={{ marginBottom: 15 }}>
           <label htmlFor="description">Job Description *</label>
           <textarea
             id="description"
@@ -106,7 +122,7 @@ const PostJob = () => {
             name="location"
             value={job.location}
             onChange={handleChange}
-            placeholder="e.g. Mumbai, India"
+            placeholder="e.g. Delhi, India"
             required
             style={{ width: "100%", padding: 8, marginTop: 5 }}
           />
@@ -120,7 +136,7 @@ const PostJob = () => {
             name="salary"
             value={job.salary}
             onChange={handleChange}
-            placeholder="e.g. 20,000 - 30,000 INR"
+            placeholder="e.g. ₹30,000"
             style={{ width: "100%", padding: 8, marginTop: 5 }}
           />
         </div>

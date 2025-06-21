@@ -5,44 +5,82 @@ import './UserDashboard.css';
 
 const UserDashboard = () => {
   const [jobs, setJobs] = useState([]);
+  const [appliedJobIds, setAppliedJobIds] = useState([]);
 
   useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        const res = await API.get('/jobs');
-        if (Array.isArray(res.data.jobs)) {
-          setJobs(res.data.jobs);
-        } else {
-          console.error('Invalid response format:', res.data);
-          setJobs([]);
-        }
-      } catch (error) {
-        console.error('Error fetching jobs:', error);
-        setJobs([]);
-      }
-    };
-
     fetchJobs();
   }, []);
 
-  const handleApply = async (jobId) => {
+  const fetchJobs = async () => {
     try {
-      const token = localStorage.getItem('token');
-      await API.post(`/jobs/apply/${jobId}`, {}, {
-        headers: {
-          Authorization: `Bearer ${token}`
+      const res = await API.get('/jobs');
+      if (Array.isArray(res.data.jobs)) {
+        setJobs(res.data.jobs);
+
+        const token = localStorage.getItem('token');
+        if (token) {
+          const decoded = parseJwt(token);
+          const userId = decoded?.id;
+
+          const applied = res.data.jobs
+            .filter(job => job.applicants?.some(app => app.user?._id === userId))
+            .map(job => job._id);
+
+          setAppliedJobIds(applied);
         }
+      } else {
+        setJobs([]);
+      }
+    } catch (error) {
+      console.error('Error fetching jobs:', error);
+    }
+  };
+
+  const handleApply = async (jobId) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Please log in to apply');
+      return;
+    }
+
+    const decoded = parseJwt(token);
+    if (!decoded || decoded.role !== 'user') {
+      alert('Access denied. Only users can apply to jobs.');
+      return;
+    }
+
+    try {
+      const res = await API.post(`/jobs/apply/${jobId}`, {}, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
-      alert('Application submitted successfully');
+
+      if (res.status === 200) {
+        alert('Application submitted successfully');
+        setAppliedJobIds(prev => [...prev, jobId]);
+      }
     } catch (err) {
-      alert('Error applying to job');
+      console.error('Error applying to job:', err);
+      const msg = err?.response?.data?.msg || 'Error applying to job';
+      alert(msg);
+    }
+  };
+
+  const parseJwt = (token) => {
+    try {
+      const base64Payload = token.split('.')[1];
+      const payload = atob(base64Payload);
+      return JSON.parse(payload);
+    } catch (e) {
+      return null;
     }
   };
 
   return (
     <div className="user-dashboard">
       <nav className="user-navbar">
-        <div className="logo">JobPortal </div>
+        <div className="logo">JobPortal</div>
         <ul className="nav-links">
           <li><Link to="/user/dashboard">Dashboard</Link></li>
           <li><Link to="/user/applied-jobs">Applied Jobs</Link></li>
@@ -101,9 +139,14 @@ const UserDashboard = () => {
                 <h3>{job.title}</h3>
                 <p><strong>Company:</strong> {job.company}</p>
                 <p><strong>Location:</strong> {job.location}</p>
-                 <p><strong>Salary:</strong> {job.salary}</p>
+                <p><strong>Salary:</strong> {job.salary}</p>
                 <p>{job.description}</p>
-                <button onClick={() => handleApply(job._id)}>Apply Now</button>
+                <button
+                  onClick={() => handleApply(job._id)}
+                  disabled={appliedJobIds.includes(job._id)}
+                >
+                  {appliedJobIds.includes(job._id) ? 'Already Applied' : 'Apply Now'}
+                </button>
               </div>
             ))}
           </div>
