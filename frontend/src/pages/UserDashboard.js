@@ -10,9 +10,15 @@ const UserDashboard = () => {
     const fetchJobs = async () => {
       try {
         const res = await API.get('/jobs');
-        setJobs(res.data);
+        if (Array.isArray(res.data.jobs)) {
+          setJobs(res.data.jobs);
+        } else {
+          console.error('Invalid response format:', res.data);
+          setJobs([]);
+        }
       } catch (error) {
         console.error('Error fetching jobs:', error);
+        setJobs([]);
       }
     };
 
@@ -21,7 +27,12 @@ const UserDashboard = () => {
 
   const handleApply = async (jobId) => {
     try {
-      await API.post(`/jobs/apply/${jobId}`);
+      const token = localStorage.getItem('token');
+      await API.post(`/jobs/apply/${jobId}`, {}, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       alert('Application submitted successfully');
     } catch (err) {
       alert('Error applying to job');
@@ -90,6 +101,7 @@ const UserDashboard = () => {
                 <h3>{job.title}</h3>
                 <p><strong>Company:</strong> {job.company}</p>
                 <p><strong>Location:</strong> {job.location}</p>
+                 <p><strong>Salary:</strong> {job.salary}</p>
                 <p>{job.description}</p>
                 <button onClick={() => handleApply(job._id)}>Apply Now</button>
               </div>

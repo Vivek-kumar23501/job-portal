@@ -16,10 +16,12 @@ const authenticate = (req, res, next) => {
   }
 };
 
-const checkRole = (requiredRole) => (req, res, next) => {
-  if (req.user.role !== requiredRole)
-    return res.status(403).json({ msg: "Access denied: wrong role" });
-  next();
+const checkRole = (requiredRole) => {
+  return (req, res, next) => {
+    if (req.user.role !== requiredRole)
+      return res.status(403).json({ msg: "Access denied: wrong role" });
+    next();
+  };
 };
 
 module.exports = { authenticate, checkRole };

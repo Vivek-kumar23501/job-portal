@@ -5,19 +5,31 @@ import './EmployerDashboard.css';
 
 const EmployerDashboard = () => {
   const [jobs, setJobs] = useState([]);
+useEffect(() => {
+  const fetchEmployerJobs = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await API.get('/employer/jobs', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-  useEffect(() => {
-    const fetchEmployerJobs = async () => {
-      try {
-        const res = await API.get('/employer/jobs'); // Adjust route as per backend
-        setJobs(res.data);
-      } catch (error) {
-        console.error('Error fetching employer jobs:', error);
+      if (Array.isArray(res.data.jobs)) {
+        setJobs(res.data.jobs); // ✅ Corrected
+      } else {
+        console.error('Invalid response format:', res.data);
+        setJobs([]);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching employer jobs:', error);
+      setJobs([]);
+    }
+  };
 
-    fetchEmployerJobs();
-  }, []);
+  fetchEmployerJobs();
+}, []);
+
 
   return (
     <div className="employer-dashboard">
@@ -54,15 +66,20 @@ const EmployerDashboard = () => {
 
       <section className="posted-jobs">
         <h2>Your Job Listings</h2>
-        {jobs.length === 0 ? (
+        {Array.isArray(jobs) && jobs.length === 0 ? (
           <p>You haven't posted any jobs yet.</p>
         ) : (
           <div className="jobs">
-            {jobs.map((job) => (
+            {Array.isArray(jobs) && jobs.map((job) => (
               <div key={job._id} className="job-card">
                 <h3>{job.title}</h3>
                 <p><strong>Location:</strong> {job.location}</p>
+                <p><strong>Company:</strong> {job.company}</p>
+                <p><strong>Type:</strong> {job.jobType}</p>
+                <p><strong>Salary:</strong> {job.salary}</p>
                 <p><strong>Description:</strong> {job.description}</p>
+                <p><strong>Requirements:</strong> {job.requirements}</p>
+                <p><strong>Posted On:</strong> {new Date(job.createdAt).toLocaleDateString()}</p>
                 <Link to={`/employer/edit-job/${job._id}`} className="edit-btn">Edit</Link>
               </div>
             ))}

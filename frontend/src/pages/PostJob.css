@@ -1,50 +1,51 @@
-.post-job-page {
+.post-job-container {
   max-width: 600px;
-  margin: 50px auto;
+  margin: 40px auto;
   padding: 30px;
-  background: #ffffff;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.05);
-  border-radius: 12px;
+  background: #f7f9fb;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-family: 'Segoe UI', sans-serif;
 }
 
-.post-job-page h2 {
+.post-job-container h2 {
   text-align: center;
-  margin-bottom: 25px;
-  color: #333;
+  color: #007bff;
+  margin-bottom: 20px;
 }
 
-.job-message {
-  text-align: center;
-  color: green;
-  margin-bottom: 15px;
-  font-weight: bold;
-}
-
-.job-form {
+.post-job-form {
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
 
-.job-form input,
-.job-form textarea {
+.post-job-form input,
+.post-job-form textarea {
   padding: 12px;
+  font-size: 16px;
   border: 1px solid #ccc;
   border-radius: 6px;
-  font-size: 16px;
-  resize: none;
 }
 
-.job-form button {
+.post-job-form button {
+  padding: 12px;
   background-color: #007bff;
   color: white;
-  padding: 12px;
   border: none;
   border-radius: 6px;
   font-size: 16px;
   cursor: pointer;
+  transition: 0.3s;
 }
 
-.job-form button:hover {
+.post-job-form button:hover {
   background-color: #0056b3;
+}
+
+.message {
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: green;
 }
